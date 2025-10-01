@@ -4,6 +4,7 @@ import EmployeeTable from './components/EmployeeTable';
 import EmployeeModal from './components/EmployeeModal';
 import Toast from './components/Toast';
 import { employeeService } from './services/employeeService';
+import './App.css';
 
 function App() {
   const [employees, setEmployees] = useState([]);
@@ -35,9 +36,9 @@ function App() {
     loadEmployees(term);
   };
 
-  const handleAddEmployee = () => {
-    setEditingEmployee(null);
-    setIsModalOpen(true);
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
   };
 
   const handleEditEmployee = (employee) => {
@@ -78,78 +79,73 @@ function App() {
     }
   };
 
-  const showToast = (message, type) => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 5000);
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-2xl font-bold text-gray-900">Employee Manager</h1>
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-gray-900">Employee Data Management System</h1>
+        </div>
+      </header>
+      
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          {/* Add your main content here */}
+          <div className="flex justify-between items-center mb-6">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="Search employees..."
+                value={searchTerm}
+                onChange={handleSearch}
+              />
             </div>
             <button
-              onClick={handleAddEmployee}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+              type="button"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              onClick={() => {
+                setEditingEmployee(null);
+                setIsModalOpen(true);
+              }}
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="-ml-1 mr-2 h-5 w-5" />
               Add Employee
             </button>
           </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+          
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
             </div>
-            <input
-              type="text"
-              placeholder="Search employees..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-            />
-          </div>
-        </div>
-
-        {/* Employee Table */}
-        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-          <EmployeeTable
-            employees={employees}
-            loading={loading}
-            onEdit={handleEditEmployee}
-            onDelete={handleDeleteEmployee}
-          />
+          ) : (
+            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+              <EmployeeTable 
+                employees={employees} 
+                onEdit={handleEditEmployee} 
+                onDelete={handleDeleteEmployee} 
+              />
+            </div>
+          )}
         </div>
       </main>
 
-      {/* Employee Modal */}
-      {isModalOpen && (
-        <EmployeeModal
-          employee={editingEmployee}
-          onSave={handleSaveEmployee}
-          onClose={() => setIsModalOpen(false)}
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
         />
       )}
 
-      {/* Toast Notifications */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+      <EmployeeModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        employee={editingEmployee}
+        onSave={handleSaveEmployee}
+      />
     </div>
   );
 }
