@@ -1,11 +1,21 @@
 import sqlite3 from 'sqlite3';
 import { promisify } from 'util';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { mkdir } from 'fs/promises';
+import { existsSync } from 'fs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 let db = null;
 
 export const getDatabase = () => {
   if (!db) {
-    const dbPath = process.env.NODE_ENV === 'test' ? ':memory:' : './server/database/employees.db';
+    const dbPath = process.env.NODE_ENV === 'test' 
+      ? ':memory:' 
+      : join(__dirname, 'employees.db');
+    
     db = new sqlite3.Database(dbPath);
     
     // Promisify database methods
@@ -17,6 +27,11 @@ export const getDatabase = () => {
 };
 
 export const initDatabase = async () => {
+  // Ensure database directory exists
+  if (!existsSync(__dirname)) {
+    await mkdir(__dirname, { recursive: true });
+  }
+
   const database = getDatabase();
   
   const createTableQuery = `
@@ -32,7 +47,7 @@ export const initDatabase = async () => {
   
   try {
     await database.runAsync(createTableQuery);
-    console.log('✅ Database initialized successfully');
+    console.log('✅ Database initialized successfully at', __dirname);
   } catch (error) {
     console.error('❌ Error initializing database:', error);
     throw error;
